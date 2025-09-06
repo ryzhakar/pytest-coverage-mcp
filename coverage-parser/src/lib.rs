@@ -142,10 +142,14 @@ impl CoverageParser {
     }
 
     fn normalize_path_from(coverage_py_formatted: &str) -> String {
+        if coverage_py_formatted.is_empty() {
+            return coverage_py_formatted.to_string();
+        }
         // Convert "tests.test_main.test_analytics_processing"
         // to "tests/test_main.py::test_analytics_processing"
         // to maintain consistency with pytest.
         let parts: Vec<&str> = coverage_py_formatted.split('.').collect();
+        // Module level or malformed?
         if parts.len() < 2 {
             return coverage_py_formatted.to_string();
         }
