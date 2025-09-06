@@ -2,10 +2,10 @@ mod attribution_structures;
 mod coverage_structures;
 mod types;
 
-use crate::coverage_structures::{CoverageReport, CoverageData};
 use crate::attribution_structures::{SourceElement, TestElement};
-use crate::types::Result;
-use std::collections::{HashSet, HashMap};
+use crate::coverage_structures::{CoverageData, CoverageReport};
+use crate::types::{ParseError, Result};
+use std::collections::{HashMap, HashSet};
 
 pub struct CoverageParser;
 
@@ -13,7 +13,36 @@ impl CoverageParser {
     pub fn parse_file(path: &str) -> Result<CoverageReport> {
         let content = std::fs::read_to_string(path)?;
         let report: CoverageReport = serde_json::from_str(&content)?;
+
+        Self::validate_report(&report)?;
         Ok(report)
+    }
+
+    fn validate_report(report: &CoverageReport) -> Result<()> {
+        if !report.meta.show_contexts {
+            return Err(ParseError::ContextDisabled);
+        }
+        // Unless the context string is empty,
+        // at least one context must contain `test` as a prefix.
+        let allowed_prefixes = vec!["test", "tests"];
+        let has_at_least_one_test_context = report
+            .files
+            .values()
+            // Flatten to context arrays
+            .flat_map(|file| file.contexts.values())
+            // and then to context strings
+            .flat_map(|context_array| context_array.iter())
+            // and then to prefix match statuses
+            .flat_map(|context| {
+                allowed_prefixes
+                    .iter()
+                    .map(|prefix| context.starts_with(prefix))
+            })
+            .any(|context| context);
+        if !has_at_least_one_test_context {
+            return Err(ParseError::WrongContextFormat);
+        }
+        Ok(())
     }
 
     pub fn extract_source_elements(report: &CoverageReport) -> Vec<SourceElement> {
@@ -36,12 +65,7 @@ impl CoverageParser {
             }
 
             // Classes and methods
-            Self::extract_class_elements_from(
-                file_path,
-                &file_data.classes,
-                &mut elements,
-                None,
-            );
+            Self::extract_class_elements_from(file_path, &file_data.classes, &mut elements, None);
         }
         elements
     }
@@ -72,7 +96,7 @@ impl CoverageParser {
                 element_container,
                 Some(&full_class_path),
             );
-             
+
             // Class methods
 
             for (method_name, method_data) in &class_data.functions {
@@ -82,7 +106,6 @@ impl CoverageParser {
                     covered_lines: method_data.executed_lines.clone(),
                 });
             }
-
         }
     }
 
@@ -95,19 +118,14 @@ impl CoverageParser {
         test_contexts
             .into_iter()
             .filter(|ctx| !ctx.is_empty())
-            .map(
-                |ctx| TestElement{
-                    path: ctx.clone(),
-                    normalized_path: Self::normalize_path_from(&ctx),
-                }
-            )
+            .map(|ctx| TestElement {
+                path: ctx.clone(),
+                normalized_path: Self::normalize_path_from(&ctx),
+            })
             .collect()
     }
 
-    fn collect_contexts_recursive(
-        data: &CoverageData,
-        coverage_contexts: &mut HashSet<String>,
-    ) {
+    fn collect_contexts_recursive(data: &CoverageData, coverage_contexts: &mut HashSet<String>) {
         for test_list in data.contexts.values() {
             for test in test_list {
                 coverage_contexts.insert(test.clone());
@@ -133,11 +151,7 @@ impl CoverageParser {
         }
         let (module_parts, test_function_name) = parts.split_at(parts.len() - 1);
         let pymodule_path = module_parts.join("/");
-        format!(
-            "{}.py::{}",
-            pymodule_path,
-            test_function_name[0],
-        )
+        format!("{}.py::{}", pymodule_path, test_function_name[0],)
     }
 }
 
@@ -156,5 +170,4 @@ mod tests {
         assert!(!test_elements.is_empty());
         println!("{:?}", parsed);
     }
-
 }
