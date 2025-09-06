@@ -1,0 +1,113 @@
+{
+    "meta": {
+        "format": 3,
+        "version": "8.0.0",
+        "timestamp": "2025-09-06T14:32:00.123456",
+        "branch_coverage": true,
+        "show_contexts": true
+    },
+    "files": {
+        "my_project/utils.py": {
+            "executed_lines": [1, 2],
+            "missing_lines": [],
+            "excluded_lines": [],
+            "summary": {
+                "covered_lines": 2, "num_statements": 2, "percent_covered": 100.0, "percent_covered_display": "100.00",
+                "missing_lines": 0, "excluded_lines": 0, "num_branches": 0, "num_partial_branches": 0,
+                "covered_branches": 0, "missing_branches": 0
+            },
+            "contexts": { "1": ["tests.test_utils.test_helper"], "2": ["tests.test_utils.test_helper"] },
+            "executed_branches": [],
+            "missing_branches": [],
+            "functions": {},
+            "classes": {}
+        },
+        "my_project/main.py": {
+            "executed_lines": [1, 2, 5, 6, 8, 10, 11, 14, 15, 18, 20],
+            "missing_lines": [12, 21],
+            "excluded_lines": [3, 9, 17],
+            "summary": {
+                "covered_lines": 11, "num_statements": 13, "percent_covered": 84.61538461538461, "percent_covered_display": "84.62",
+                "missing_lines": 2, "excluded_lines": 3, "num_branches": 4, "num_partial_branches": 1,
+                "covered_branches": 2, "missing_branches": 2
+            },
+            "contexts": {
+                "1": [""], "2": ["tests.test_main.test_top_level"], "5": ["tests.test_main.test_analytics_processing"],
+                "6": ["tests.test_main.test_analytics_processing"], "8": ["tests.test_main.test_analytics_processing"],
+                "10": ["tests.test_main.test_analytics_processing"], "11": ["tests.test_main.test_analytics_processing"],
+                "14": ["tests.test_main.test_analytics_helper"], "15": ["tests.test_main.test_analytics_helper"],
+                "18": ["tests.test_main.test_analytics_processing"], "20": ["tests.test_main.test_analytics_processing"]
+            },
+            "executed_branches": [
+                [10, 11], [20, -8]
+            ],
+            "missing_branches": [
+                [10, 12], [20, 21]
+            ],
+            "functions": {
+                "top_level_func": {
+                    "executed_lines": [2],
+                    "summary": {
+                        "covered_lines": 1, "num_statements": 1, "percent_covered": 100.0, "percent_covered_display": "100.00",
+                        "missing_lines": 0, "excluded_lines": 0, "num_branches": 0, "num_partial_branches": 0,
+                        "covered_branches": 0, "missing_branches": 0
+                    }
+                }
+            },
+            "classes": {
+                "ComplexAnalytics": {
+                    "executed_lines": [6, 8, 10, 11, 14, 15, 18, 20],
+                    "summary": {
+                        "covered_lines": 8, "num_statements": 10, "percent_covered": 80.0, "percent_covered_display": "80.00",
+                        "missing_lines": 2, "excluded_lines": 0, "num_branches": 4, "num_partial_branches": 1,
+                        "covered_branches": 2, "missing_branches": 2
+                    },
+                    "functions": {
+                        "__init__": {
+                            "executed_lines": [6],
+                            "summary": { "covered_lines": 1, "num_statements": 1, "percent_covered": 100.0, "percent_covered_display": "100.00", "missing_lines": 0, "excluded_lines": 0, "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0 }
+                        },
+                        "process_data": {
+                            "executed_lines": [8, 10, 11, 18, 20],
+                            "summary": {
+                                "covered_lines": 5, "num_statements": 7, "percent_covered": 71.42857142857143, "percent_covered_display": "71.43",
+                                "missing_lines": 2, "excluded_lines": 0, "num_branches": 4, "num_partial_branches": 1,
+                                "covered_branches": 2, "missing_branches": 2
+                            },
+                            "functions": {
+                                "inner_closure": {
+                                    "executed_lines": [18],
+                                    "summary": { "covered_lines": 1, "num_statements": 1, "percent_covered": 100.0, "percent_covered_display": "100.00", "missing_lines": 0, "excluded_lines": 0, "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0 }
+                                }
+                            }
+                        }
+                    },
+                    "classes": {
+                        "Helpers": {
+                            "executed_lines": [14, 15],
+                            "summary": { "covered_lines": 2, "num_statements": 2, "percent_covered": 100.0, "percent_covered_display": "100.00", "missing_lines": 0, "excluded_lines": 0, "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0 },
+                            "functions": {
+                                "utility_method": {
+                                    "executed_lines": [15],
+                                    "summary": { "covered_lines": 1, "num_statements": 1, "percent_covered": 100.0, "percent_covered_display": "100.00", "missing_lines": 0, "excluded_lines": 0, "num_branches": 0, "num_partial_branches": 0, "covered_branches": 0, "missing_branches": 0 }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "totals": {
+        "covered_lines": 13,
+        "num_statements": 15,
+        "percent_covered": 86.66666666666667,
+        "percent_covered_display": "86.67",
+        "missing_lines": 2,
+        "excluded_lines": 3,
+        "num_branches": 4,
+        "num_partial_branches": 1,
+        "covered_branches": 2,
+        "missing_branches": 2
+    }
+}
