@@ -83,3 +83,34 @@ impl TestElement {
         format!("{}.py::{}", pymodule_path, test_function_name[0],)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_normalize_path() {
+        // Normal case
+        assert_eq!(
+            TestElement::normalize_path_from("tests.test_main.test_analytics_processing"),
+            "tests/test_main.py::test_analytics_processing"
+        );
+
+        // Single part
+        assert_eq!(
+            TestElement::normalize_path_from("standalone_test"),
+            "standalone_test"
+        );
+
+        // Empty string
+        assert_eq!(
+            TestElement::normalize_path_from(""),
+            ""
+        );
+
+        // Two-part path
+        assert_eq!(
+            TestElement::normalize_path_from("tests.test_helper"),
+            "tests.py::test_helper"
+        );
+    }
+}
