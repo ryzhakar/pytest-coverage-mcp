@@ -1,0 +1,12 @@
+[package]
+name = "mcp-server"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+attribution-engine = { path = "../attribution-engine" }
+coverage-parser = { path = "../coverage-parser" }
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true

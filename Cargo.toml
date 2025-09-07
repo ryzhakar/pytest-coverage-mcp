@@ -1,8 +1,8 @@
 [workspace]
-members = [ "attribution-engine",
+members = [
+    "attribution-engine", 
     "coverage-parser",
-    # "attribution-engine", 
-    # "mcp-server"
+    "mcp-server"
 ]
 resolver = "2"
 
