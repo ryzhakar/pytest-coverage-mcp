@@ -35,18 +35,25 @@ impl SourceElement {
         }
     }
     fn normalized_from(raw_file_path: &str, raw_element_path: &str) -> String {
-        let element_path = if raw_element_path.is_empty() {"__module__"} else {raw_element_path};
+        let element_path = if raw_element_path.is_empty() {
+            "__module__"
+        } else {
+            raw_element_path
+        };
         format!("{}::{}", raw_file_path, element_path)
     }
     fn element_type_from(raw_element_path: &str) -> SourceElementType {
         let element_parts: Vec<&str> = raw_element_path.split('.').collect();
         match element_parts[element_parts.len() - 1].chars().nth(0) {
             Some(ch) => {
-                if ch.is_uppercase() {SourceElementType::Class}
-                else {SourceElementType::FunctionLike}
-            },
+                if ch.is_uppercase() {
+                    SourceElementType::Class
+                } else {
+                    SourceElementType::FunctionLike
+                }
+            }
             // Empty string
-            None => {SourceElementType::Module}
+            None => SourceElementType::Module,
         }
     }
 }
@@ -76,4 +83,3 @@ impl TestElement {
         format!("{}.py::{}", pymodule_path, test_function_name[0],)
     }
 }
-

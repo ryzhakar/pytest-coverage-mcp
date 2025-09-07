@@ -2,12 +2,8 @@ pub mod coverage_structures;
 pub mod types;
 
 use crate::coverage_structures::CoverageReport;
-use crate::types::{
-    ParseError,
-    Result,
-    RawAttributionMap,
-};
-use std::collections::{HashMap};
+use crate::types::{ParseError, RawAttributionMap, Result};
+use std::collections::HashMap;
 pub struct CoverageParser;
 
 impl CoverageParser {
@@ -68,7 +64,10 @@ impl CoverageParser {
                 for (class_line, class_tests) in &class_data.contexts {
                     class_context_map.insert(class_line.to_owned(), class_tests.to_owned());
                 }
-                class_map.insert((file_path.clone(), class_name.to_owned()), class_context_map);
+                class_map.insert(
+                    (file_path.clone(), class_name.to_owned()),
+                    class_context_map,
+                );
             }
 
             // Funcs
@@ -126,5 +125,4 @@ mod tests {
     //         "tests.py::test_helper"
     //     );
     // }
-
 }

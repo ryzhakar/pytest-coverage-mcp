@@ -37,4 +37,5 @@ pub type LineNumberVector = Vec<u32>;
 pub type BranchExit = [i32; 2];
 pub type RawSourceElementPath = (String, String);
 pub type RawTestElementPath = String;
-pub type RawAttributionMap = HashMap<RawSourceElementPath, HashMap<String, Vec<RawTestElementPath>>>;
+pub type RawAttributionMap =
+    HashMap<RawSourceElementPath, HashMap<String, Vec<RawTestElementPath>>>;
