@@ -22,16 +22,28 @@ pub struct TestElement {
 }
 
 impl SourceElement {
+    pub fn does_match_at_start_of(&self, other: &SourceElement) -> bool {
+        if self.original_file_path != other.original_file_path {
+            return false;
+        }
+        if self.original_element_path.is_empty() {
+            return true;
+        }
+        other.original_element_path.starts_with(&self.original_element_path)
+    }
+
     pub fn from_parts(
-        raw_file_path: &str,
-        raw_element_path: &str,
+        raw_file_path: String,
+        raw_element_path: String,
         element_type_override: Option<SourceElementType>,
     ) -> Self {
         Self {
             original_file_path: raw_file_path.to_string(),
             original_element_path: raw_element_path.to_string(),
-            normalized_full_path: Self::normalized_from(raw_file_path, raw_element_path),
-            element_type: Self::element_type_from(raw_element_path),
+            normalized_full_path: Self::normalized_from(&raw_file_path, &raw_element_path),
+            element_type: element_type_override.unwrap_or(
+                Self::element_type_from(&raw_element_path)
+            ),
         }
     }
     fn normalized_from(raw_file_path: &str, raw_element_path: &str) -> String {
@@ -59,10 +71,10 @@ impl SourceElement {
 }
 
 impl TestElement {
-    pub fn from_parts(raw_test_path: &str) -> Self {
+    pub fn from_parts(raw_test_path: String) -> Self {
         Self {
             original_full_path: raw_test_path.to_string(),
-            normalized_full_path: Self::normalize_path_from(raw_test_path),
+            normalized_full_path: Self::normalize_path_from(&raw_test_path),
         }
     }
 
