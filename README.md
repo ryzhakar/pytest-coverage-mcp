@@ -6,6 +6,10 @@
 
 Transform how language models write tests by providing precise, bidirectional coverage attribution data instead of misleading aggregate coverage percentages. This prevents "coverage theater" - the anti-pattern where tests are optimized for coverage metrics rather than meaningful behavior validation.
 
+## Development Approach
+
+**Human-Driven Implementation with LLM Mentorship**: This codebase represents human engineering work guided by language model mentorship. The code is written by a human developer, with an LLM serving as an interactive learning mentor - helping understand concepts, suggesting architectural approaches, and providing technical guidance. This collaborative learning approach demonstrates how LLMs can enhance human learning and development workflows without replacing human creativity and decision-making.
+
 ## Core Problem
 
 Current test-writing workflows suffer from:
@@ -97,4 +101,4 @@ Expects pytest coverage.json with contexts enabled:
 
 ---
 
-*Built with systems thinking for machine learning teams adopting LLM-assisted development workflows.*
+*Built through human engineering with LLM mentorship - demonstrating collaborative learning approaches for machine learning teams adopting AI-assisted development workflows.*

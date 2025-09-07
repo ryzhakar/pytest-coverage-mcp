@@ -1,5 +1,15 @@
 # Dialogue Insights & Key Decisions
 
+## Development Methodology
+
+**Human-LLM Collaborative Learning**: This project demonstrates a mentorship model where a human developer implements the system while receiving guidance from an LLM acting as an interactive learning mentor. The LLM provides conceptual explanations, architectural suggestions, and technical guidance, but all code is written by the human developer. This approach showcases how LLMs can enhance human learning and problem-solving without replacing human agency in software development.
+
+**Key Characteristics:**
+- **Human Decision-Making**: All architectural choices, implementation strategies, and code structure decisions made by the human developer
+- **LLM Mentorship**: Conceptual explanations, pattern recognition, best practice guidance, and learning support
+- **Interactive Learning**: Real-time feedback loops between human questions and LLM explanations
+- **Iterative Refinement**: Human-driven iterations with LLM providing context and alternatives
+
 ## Origin Story
 
 **Initial Request**: Build a simple MCP server to expose pytest coverage results as MCP resources.

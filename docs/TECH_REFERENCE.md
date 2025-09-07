@@ -1,5 +1,9 @@
 # Technical Reference & Implementation Status
 
+## Development Methodology
+
+**Human-Implemented with LLM Guidance**: This technical reference documents a system built through human engineering with LLM mentorship. The code architecture, implementation decisions, and technical solutions represent human work enhanced by AI-assisted learning. The LLM serves as an interactive technical mentor, providing explanations, suggesting patterns, and helping navigate complex implementation challenges, while all code is written and decisions are made by the human developer.
+
 ## Workspace Structure
 
 ```
