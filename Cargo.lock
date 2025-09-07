@@ -9,6 +9,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b0674a1ddeecb70197781e945de4b3b8ffb61fa939a5597bcf48503737663100"
 
 [[package]]
+name = "attribution-engine"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "coverage-parser",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
 name = "coverage-parser"
 version = "0.1.0"
 dependencies = [

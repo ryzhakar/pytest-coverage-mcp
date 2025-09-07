@@ -1,5 +1,5 @@
 [workspace]
-members = [
+members = [ "attribution-engine",
     "coverage-parser",
     # "attribution-engine", 
     # "mcp-server"
