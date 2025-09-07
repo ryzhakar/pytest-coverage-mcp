@@ -1,3 +1,4 @@
+use crate::HashMap;
 use thiserror::Error;
 
 const CONTEXT_INSTRUCTION: &str = "Enable `dynamic_context = \"test_function\"` \
@@ -34,3 +35,6 @@ pub enum ParseError {
 pub type Result<T> = std::result::Result<T, ParseError>;
 pub type LineNumberVector = Vec<u32>;
 pub type BranchExit = [i32; 2];
+pub type RawSourceElementPath = (String, String);
+pub type RawTestElementPath = String;
+pub type RawAttributionMap = HashMap<RawSourceElementPath, HashMap<String, Vec<RawTestElementPath>>>;

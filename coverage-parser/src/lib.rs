@@ -1,12 +1,13 @@
-mod attribution_structures;
-mod coverage_structures;
-mod types;
+pub mod coverage_structures;
+pub mod types;
 
-use crate::attribution_structures::{SourceElement, TestElement};
-use crate::coverage_structures::{CoverageData, CoverageReport};
-use crate::types::{ParseError, Result};
-use std::collections::{HashMap, HashSet};
-
+use crate::coverage_structures::CoverageReport;
+use crate::types::{
+    ParseError,
+    Result,
+    RawAttributionMap,
+};
+use std::collections::{HashMap};
 pub struct CoverageParser;
 
 impl CoverageParser {
@@ -24,7 +25,7 @@ impl CoverageParser {
         }
         // Unless the context string is empty,
         // at least one context must contain `test` as a prefix.
-        let allowed_prefixes = vec!["test", "tests"];
+        let allowed_prefixes = ["test", "tests"];
         let has_at_least_one_test_context = report
             .files
             .values()
@@ -45,117 +46,41 @@ impl CoverageParser {
         Ok(())
     }
 
-    pub fn extract_source_elements(report: &CoverageReport) -> Vec<SourceElement> {
-        let mut elements = Vec::<SourceElement>::new();
-        for (file_path, file_data) in &report.files {
-            // Module-level element
-            elements.push(SourceElement {
-                path: file_path.clone(),
-                element_path: "__module__".to_string(),
-                covered_lines: file_data.executed_lines.clone(),
-            });
+    // Report non-accumulated context mappings
+    // of modules, classes and function-likes.
+    pub fn report_source_elements_from(
+        coverage_report: &CoverageReport,
+    ) -> (RawAttributionMap, RawAttributionMap, RawAttributionMap) {
+        let mut module_map: RawAttributionMap = HashMap::new();
+        let mut class_map: RawAttributionMap = HashMap::new();
+        let mut func_map: RawAttributionMap = HashMap::new();
+        // Modules
+        for (file_path, file_data) in &coverage_report.files {
+            let mut file_context_map: HashMap<String, Vec<String>> = HashMap::new();
+            for (module_line, module_tests) in &file_data.contexts {
+                file_context_map.insert(module_line.to_owned(), module_tests.to_owned());
+            }
+            module_map.insert((file_path.clone(), "".to_string()), file_context_map);
 
-            // Functions
+            // Classes
+            for (class_name, class_data) in &file_data.classes {
+                let mut class_context_map: HashMap<String, Vec<String>> = HashMap::new();
+                for (class_line, class_tests) in &class_data.contexts {
+                    class_context_map.insert(class_line.to_owned(), class_tests.to_owned());
+                }
+                class_map.insert((file_path.clone(), class_name.to_owned()), class_context_map);
+            }
+
+            // Funcs
             for (func_name, func_data) in &file_data.functions {
-                elements.push(SourceElement {
-                    path: file_path.clone(),
-                    element_path: func_name.clone(),
-                    covered_lines: func_data.executed_lines.clone(),
-                });
-            }
-
-            // Classes and methods
-            Self::extract_class_elements_from(file_path, &file_data.classes, &mut elements, None);
-        }
-        elements
-    }
-
-    fn extract_class_elements_from(
-        file_path: &str,
-        classes: &HashMap<String, CoverageData>,
-        element_container: &mut Vec<SourceElement>,
-        parent_node: Option<&str>,
-    ) {
-        for (name, class_data) in classes {
-            let full_class_path = match parent_node {
-                Some(parent_path) => format!("{}::{}", parent_path, name),
-                None => name.clone(),
-            };
-
-            // The class itself
-            element_container.push(SourceElement {
-                path: file_path.to_string(),
-                element_path: full_class_path.clone(),
-                covered_lines: class_data.executed_lines.clone(),
-            });
-
-            // Nested classes
-            Self::extract_class_elements_from(
-                file_path,
-                &class_data.classes,
-                element_container,
-                Some(&full_class_path),
-            );
-
-            // Class methods
-
-            for (method_name, method_data) in &class_data.functions {
-                element_container.push(SourceElement {
-                    path: file_path.to_string(),
-                    element_path: format!("{}::{}", full_class_path, method_name),
-                    covered_lines: method_data.executed_lines.clone(),
-                });
+                let mut func_context_map: HashMap<String, Vec<String>> = HashMap::new();
+                for (func_line, func_tests) in &func_data.contexts {
+                    func_context_map.insert(func_line.to_owned(), func_tests.to_owned());
+                }
+                func_map.insert((file_path.clone(), func_name.to_owned()), func_context_map);
             }
         }
-    }
-
-    pub fn extract_test_elements(report: &CoverageReport) -> Vec<TestElement> {
-        let mut test_contexts = HashSet::<String>::new();
-        for file_data in report.files.values() {
-            Self::collect_contexts_recursive(file_data, &mut test_contexts);
-        }
-
-        test_contexts
-            .into_iter()
-            .filter(|ctx| !ctx.is_empty())
-            .map(|ctx| TestElement {
-                path: ctx.clone(),
-                normalized_path: Self::normalize_path_from(&ctx),
-            })
-            .collect()
-    }
-
-    fn collect_contexts_recursive(data: &CoverageData, coverage_contexts: &mut HashSet<String>) {
-        for test_list in data.contexts.values() {
-            for test in test_list {
-                coverage_contexts.insert(test.clone());
-            }
-        }
-
-        for func_data in data.functions.values() {
-            Self::collect_contexts_recursive(func_data, coverage_contexts);
-        }
-
-        for class_data in data.classes.values() {
-            Self::collect_contexts_recursive(class_data, coverage_contexts);
-        }
-    }
-
-    fn normalize_path_from(coverage_py_formatted: &str) -> String {
-        if coverage_py_formatted.is_empty() {
-            return coverage_py_formatted.to_string();
-        }
-        // Convert "tests.test_main.test_analytics_processing"
-        // to "tests/test_main.py::test_analytics_processing"
-        // to maintain consistency with pytest.
-        let parts: Vec<&str> = coverage_py_formatted.split('.').collect();
-        // Module level or malformed?
-        if parts.len() < 2 {
-            return coverage_py_formatted.to_string();
-        }
-        let (module_parts, test_function_name) = parts.split_at(parts.len() - 1);
-        let pymodule_path = module_parts.join("/");
-        format!("{}.py::{}", pymodule_path, test_function_name[0],)
+        (module_map, class_map, func_map)
     }
 }
 
@@ -167,39 +92,39 @@ mod tests {
     fn parses_example() {
         let path = "../.example.json".to_string();
         let parsed = CoverageParser::parse_file(&path).unwrap();
-        let source_elements = CoverageParser::extract_source_elements(&parsed);
-        let test_elements = CoverageParser::extract_test_elements(&parsed);
+        let (modules, classes, funcs) = CoverageParser::report_source_elements_from(&parsed);
         assert!(&parsed.meta.show_contexts);
-        assert!(!source_elements.is_empty());
-        assert!(!test_elements.is_empty());
+        assert!(!modules.is_empty());
+        assert!(!classes.is_empty());
+        assert!(!funcs.is_empty());
         println!("{:?}", parsed);
     }
 
-    #[test]
-    fn test_normalize_path() {
-        // Normal case
-        assert_eq!(
-            CoverageParser::normalize_path_from("tests.test_main.test_analytics_processing"),
-            "tests/test_main.py::test_analytics_processing"
-        );
-
-        // Single part
-        assert_eq!(
-            CoverageParser::normalize_path_from("standalone_test"),
-            "standalone_test"
-        );
-
-        // Empty string
-        assert_eq!(
-            CoverageParser::normalize_path_from(""),
-            ""
-        );
-
-        // Two-part path
-        assert_eq!(
-            CoverageParser::normalize_path_from("tests.test_helper"),
-            "tests.py::test_helper"
-        );
-    }
+    // #[test]
+    // fn test_normalize_path() {
+    //     // Normal case
+    //     assert_eq!(
+    //         CoverageParser::normalize_path_from("tests.test_main.test_analytics_processing"),
+    //         "tests/test_main.py::test_analytics_processing"
+    //     );
+    //
+    //     // Single part
+    //     assert_eq!(
+    //         CoverageParser::normalize_path_from("standalone_test"),
+    //         "standalone_test"
+    //     );
+    //
+    //     // Empty string
+    //     assert_eq!(
+    //         CoverageParser::normalize_path_from(""),
+    //         ""
+    //     );
+    //
+    //     // Two-part path
+    //     assert_eq!(
+    //         CoverageParser::normalize_path_from("tests.test_helper"),
+    //         "tests.py::test_helper"
+    //     );
+    // }
 
 }
