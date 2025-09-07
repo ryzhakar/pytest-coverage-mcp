@@ -19,6 +19,14 @@ pub struct TestElement {
     pub original_full_path: String,
     // "tests/test_main.py::test_analytics_processing"
     pub normalized_full_path: String,
+    pub is_in_test_dir: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum CoverageMarks {
+    ExplicitlyCoveredBy(TestElement),
+    ImplicitlyCoveredBy(TestElement),
+    Uncovered,
 }
 
 impl SourceElement {
@@ -71,10 +79,14 @@ impl SourceElement {
 }
 
 impl TestElement {
-    pub fn from_parts(raw_test_path: String) -> Self {
+    pub fn from_parts(
+        raw_test_path: String,
+        test_dir: &str,
+    ) -> Self {
         Self {
-            original_full_path: raw_test_path.to_string(),
             normalized_full_path: Self::normalize_path_from(&raw_test_path),
+            is_in_test_dir: (&raw_test_path).starts_with(test_dir),
+            original_full_path: raw_test_path,
         }
     }
 

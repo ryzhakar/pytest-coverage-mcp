@@ -7,39 +7,15 @@ use std::collections::HashMap;
 pub struct CoverageParser;
 
 impl CoverageParser {
-    pub fn parse_file(path: &str) -> Result<CoverageReport> {
+    pub fn parse_file(
+        path: &str,
+        test_dir_name: &str,
+    ) -> Result<CoverageReport> {
         let content = std::fs::read_to_string(path)?;
         let report: CoverageReport = serde_json::from_str(&content)?;
+        let report = report.as_validated(test_dir_name)?;
 
-        Self::validate_report(&report)?;
         Ok(report)
-    }
-
-    fn validate_report(report: &CoverageReport) -> Result<()> {
-        if !report.meta.show_contexts {
-            return Err(ParseError::ContextDisabled);
-        }
-        // Unless the context string is empty,
-        // at least one context must contain `test` as a prefix.
-        let allowed_prefixes = ["test", "tests"];
-        let has_at_least_one_test_context = report
-            .files
-            .values()
-            // Flatten to context arrays
-            .flat_map(|file| file.contexts.values())
-            // and then to context strings
-            .flat_map(|context_array| context_array.iter())
-            // and then to prefix match statuses
-            .flat_map(|context| {
-                allowed_prefixes
-                    .iter()
-                    .map(|prefix| context.starts_with(prefix))
-            })
-            .any(|context| context);
-        if !has_at_least_one_test_context {
-            return Err(ParseError::WrongContextFormat);
-        }
-        Ok(())
     }
 
     // Report non-accumulated context mappings
@@ -90,7 +66,8 @@ mod tests {
     #[test]
     fn parses_example() {
         let path = "../.example.json".to_string();
-        let parsed = CoverageParser::parse_file(&path).unwrap();
+        let py_test_dir = "tests".to_string();
+        let parsed = CoverageParser::parse_file(&path, &py_test_dir).unwrap();
         let (modules, classes, funcs) = CoverageParser::report_source_elements_from(&parsed);
         assert!(&parsed.meta.show_contexts);
         assert!(!modules.is_empty());

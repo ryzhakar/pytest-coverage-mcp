@@ -7,29 +7,35 @@ use crate::attribution_structures::*;
 pub type AttributionMapping = HashMap<
     attribution_structures::SourceElement,
     HashMap<
-        attribution_structures::TestElement,
+        CoverageMarks,
         LineNumberVector,
     >,
 >;
 
-pub struct AttributionEngine {}
+pub struct AttributionEngine {
+    pub full_accumulated_attribution: AttributionMapping
+}
 impl AttributionEngine {
     pub fn new(
         module_map: RawAttributionMap,
         class_map: RawAttributionMap,
         func_map: RawAttributionMap,
-    ) -> AttributionMapping {
+        py_test_dir: &str,
+    ) -> Self {
         let mut module_attribution = Self::construct_attribution_mapping_from(
             module_map,
             Some(SourceElementType::Module),
+            py_test_dir,
         );
         let mut class_attribution = Self::construct_attribution_mapping_from(
             class_map,
             Some(SourceElementType::Class),
+            py_test_dir,
         );
         let mut func_attribution = Self::construct_attribution_mapping_from(
             func_map,
             Some(SourceElementType::FunctionLike),
+            py_test_dir,
         );
 
         // Aggregate func attributions into classes
@@ -47,15 +53,17 @@ impl AttributionEngine {
         Self::dedup(&mut class_attribution);
         Self::dedup(&mut func_attribution);
 
-        return module_attribution.into_iter()
-            .chain(class_attribution.into_iter())
-            .chain(func_attribution.into_iter())
+        Self {
+            full_accumulated_attribution: module_attribution.into_iter()
+            .chain(class_attribution)
+            .chain(func_attribution)
             .collect::<AttributionMapping>()
+        }
     }
 
     // remove duplicate lines and sort line vectors
     fn dedup(attribution: &mut AttributionMapping) {
-        for (_, coverage) in attribution {
+        for coverage in attribution.values_mut() {
             for (test, lines) in coverage.clone() {
                 let mut lines = lines
                     .into_iter()
@@ -68,14 +76,14 @@ impl AttributionEngine {
         }
     }
 
-
     fn construct_attribution_mapping_from(
         raw_map: RawAttributionMap,
         element_type_override: Option<SourceElementType>,
+        py_test_dir: &str,
     ) -> AttributionMapping {
         let mut final_map: AttributionMapping = HashMap::new();
         for ((raw_file_path, raw_source_path), contexts) in raw_map {
-            let mut coverage_map: HashMap<TestElement, LineNumberVector> = HashMap::new();
+            let mut coverage_map: HashMap<CoverageMarks, LineNumberVector> = HashMap::new();
             let source = SourceElement::from_parts(
                 raw_file_path.clone(),
                 raw_source_path,
@@ -89,12 +97,20 @@ impl AttributionEngine {
                     _ => {continue}
                 }
                 for raw_test_path in test_paths {
-                    let test = TestElement::from_parts(raw_test_path);
+                    let test = if raw_test_path.is_empty() {
+                        CoverageMarks::Uncovered
+                    } else {
+                        let internal_test_element = TestElement::from_parts(raw_test_path, py_test_dir);
+                        if internal_test_element.is_in_test_dir {
+                            CoverageMarks::ExplicitlyCoveredBy(internal_test_element)
+                        } else {
+                            CoverageMarks::ImplicitlyCoveredBy(internal_test_element)
+                        }
+                    };
                     match coverage_map.get_mut(&test) {
                         Some(lines) => {lines.push(line);},
                         None => {
-                            let mut lines = vec![];
-                            lines.push(line);
+                            let lines = vec![line];
                             coverage_map.insert(test, lines);
                         },
                     };

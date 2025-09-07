@@ -9,6 +9,32 @@ pub struct CoverageReport {
     pub totals: CoverageSummary,
 }
 
+impl CoverageReport {
+    pub fn as_validated(self, test_dir_name: &str) -> Result<Self> {
+        if !self.meta.show_contexts {
+            return Err(ParseError::ContextDisabled);
+        }
+        let allowed_prefixes = [test_dir_name];
+        let has_at_least_one_test_context = 
+            self.files.values()
+            // Flatten to context arrays
+            .flat_map(|file| file.contexts.values())
+            // and then to context strings
+            .flat_map(|context_array| context_array.iter())
+            // and then to prefix match statuses
+            .flat_map(|context| {
+                allowed_prefixes
+                    .iter()
+                    .map(|prefix| context.starts_with(prefix))
+            })
+            .any(|context| context);
+        if !has_at_least_one_test_context {
+            return Err(ParseError::WrongContextFormat);
+        }
+        Ok(self)
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct Meta {
     pub format: u32,
