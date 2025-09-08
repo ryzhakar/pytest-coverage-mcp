@@ -8,6 +8,7 @@ fn builds_attribution_from_report() {
     let parsed = coverage_parser::CoverageParser::parse_file(&path, &py_test_dir).unwrap();
     let (modules, classes, funcs) = coverage_parser::CoverageParser::report_source_elements_from(&parsed);
     let engine = attribution_engine::AttributionEngine::new(modules, classes, funcs, &py_test_dir);
-    dbg!(engine.full_accumulated_attribution);
+    dbg!(engine.source_to_test);
+    dbg!(engine.test_to_source);
 }
 

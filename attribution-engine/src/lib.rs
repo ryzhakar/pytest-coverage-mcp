@@ -5,15 +5,18 @@ use std::collections::{HashMap, HashSet};
 use crate::attribution_structures::*;
 
 pub type AttributionMapping = HashMap<
-    attribution_structures::SourceElement,
-    HashMap<
-        CoverageMarks,
-        LineNumberVector,
-    >,
+    SourceElement,
+    HashMap<CoverageMarks, LineNumberVector>,
+>;
+
+pub type InvertedAttributionMapping = HashMap<
+    TestElement,
+    HashMap<SourceElement, LineNumberVector>,
 >;
 
 pub struct AttributionEngine {
-    pub full_accumulated_attribution: AttributionMapping
+    pub source_to_test: AttributionMapping,
+    pub test_to_source: InvertedAttributionMapping,
 }
 impl AttributionEngine {
     pub fn new(
@@ -53,12 +56,34 @@ impl AttributionEngine {
         Self::dedup(&mut class_attribution);
         Self::dedup(&mut func_attribution);
 
-        Self {
-            full_accumulated_attribution: module_attribution.into_iter()
+        let full_accumulated_attribution = module_attribution.into_iter()
             .chain(class_attribution)
             .chain(func_attribution)
-            .collect::<AttributionMapping>()
+            .collect::<AttributionMapping>();
+            
+
+        Self {
+            source_to_test: full_accumulated_attribution.clone(),
+            test_to_source: Self::build_inverted_attribution(full_accumulated_attribution),
         }
+    }
+
+    fn build_inverted_attribution(forward_attribution: AttributionMapping) -> InvertedAttributionMapping {
+        let mut inverted = InvertedAttributionMapping::new();
+        for (source, coverage) in forward_attribution {
+            for (mark, lines) in coverage {
+                match mark {
+                    CoverageMarks::ExplicitlyCoveredBy(test) => {
+                        inverted.entry(test).or_default().insert(source.clone(), lines);
+                    },
+                    CoverageMarks::ImplicitlyCoveredBy(test) => {
+                        inverted.entry(test).or_default().insert(source.clone(), lines);
+                    },
+                    CoverageMarks::Uncovered => {},
+                }
+            }
+        }
+        inverted
     }
 
     // remove duplicate lines and sort line vectors
